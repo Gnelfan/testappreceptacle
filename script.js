@@ -83,22 +83,33 @@ fetch('data/coffres3.geojson')
 .catch(error => console.error('Erreur lors du chargement du fichier GeoJSON:', error));
 
 // Géolocalisation
-document.getElementById('geolocate').addEventListener('click', function () {
-    map.locate({ setView: true, maxZoom: 14 });
-
-    function onLocationFound(e) {
-        var radius = e.accuracy / 2000;
-
-        L.marker(e.latlng).addTo(map)
-            .bindPopup("Vous êtes ici à " + radius + " mètres de précision").openPopup();
-
-        L.circle(e.latlng, radius).addTo(map);
-    }
-
-    function onLocationError(e) {
-        alert(e.message);
-    }
-
-    map.on('locationfound', onLocationFound);
-    map.on('locationerror', onLocationError);
-});
+map
+  .locate({
+    // https://leafletjs.com/reference-1.7.1.html#locate-options-option
+    setView: true,
+    enableHighAccuracy: true,
+  })
+  // if location found show marker and circle
+  .on("locationfound", (e) => {
+    console.log(e);
+    // marker
+    const marker = L.marker([e.latitude, e.longitude]).bindPopup(
+      "Your are here :)"
+    );
+    // circle
+    const circle = L.circle([e.latitude, e.longitude], e.accuracy / 500, {
+      weight: 2,
+      color: "red",
+      fillColor: "red",
+      fillOpacity: 0.1,
+    });
+    // add marker
+    map.addLayer(marker);
+    // add circle
+    map.addLayer(circle);
+  })
+  // if error show alert
+  .on("locationerror", (e) => {
+    console.log(e);
+    alert("Location access denied.");
+  });
